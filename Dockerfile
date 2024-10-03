@@ -9,7 +9,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 \
     python3-dev \
     python3-pip \
-    python3-venv \
     build-essential \
     libmariadb-dev \
     gettext \
@@ -68,6 +67,16 @@ RUN sed -i 's|user=<user to run under>|#user=<user to run under>|g' /etc/supervi
 RUN sed -i 's|<path to virtualenv>/bin/python|/usr/bin/python3|g' /etc/supervisor/conf.d/*.conf
 RUN sed -i 's|<path to virtualenv>|/usr/local|g' /etc/supervisor/conf.d/*.conf
 RUN sed -i 's|<path to site>|/app|g' /etc/supervisor/conf.d/*.conf
+
+# Remove biuld dependencies
+RUN apt purge -y \
+    git \
+    python3-pip \
+    build-essential \
+    gettext \
+    nodejs \
+    && apt autoremove -y \
+    && apt clean
 
 # Expose the necessary ports (e.g., for Django development server)
 EXPOSE 8000
