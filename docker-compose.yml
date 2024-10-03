@@ -1,0 +1,47 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      DB_NAME: dmoj
+      DB_USER: dmoj
+      DB_PASSWORD: dmojpassword
+      DB_HOST: db
+      DB_PORT: 3306
+      REDIS_URL: redis://redis:6379
+      DJANGO_SUPERUSER_USERNAME: admin
+      DJANGO_SUPERUSER_EMAIL: admin@example.com
+      DJANGO_SUPERUSER_PASSWORD: adminpassword
+    volumes:
+      - ./docker-settings.py:/app/dmoj/local_settings.py
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  db:
+    image: mariadb:latest
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: rootpassword
+      MARIADB_DATABASE: dmoj
+      MARIADB_USER: dmoj
+      MARIADB_PASSWORD: dmojpassword
+    volumes:
+      - db_data:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 10s
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  redis:
+    image: redis:latest
+    restart: always
+
+volumes:
+  db_data:
